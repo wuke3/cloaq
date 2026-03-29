@@ -1,59 +1,415 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloaq Info</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <title>Cloaq - 使用说明</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0f0f23;
+            color: #e8e8f0;
+            min-height: 100vh;
+            line-height: 1.7;
+        }
+
+        /* 动态背景 */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(99, 102, 241, 0.06) 0%, transparent 40%);
+            animation: bgFloat 25s ease-in-out infinite;
+        }
+
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        /* 容器 */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* 头部 */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .logo-section {
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+        }
+
+        .logo-text {
+            font-size: 42px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #a5a5b5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* 卡片 */
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(99, 102, 241, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .card-icon.purple { background: rgba(99, 102, 241, 0.15); }
+        .card-icon.blue { background: rgba(59, 130, 246, 0.15); }
+        .card-icon.green { background: rgba(34, 197, 94, 0.15); }
+        .card-icon.orange { background: rgba(249, 115, 22, 0.15); }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .card-content {
+            color: #a5a5b5;
+            font-size: 15px;
+        }
+
+        .card-content p {
+            margin-bottom: 16px;
+        }
+
+        .card-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 步骤列表 */
+        .steps {
+            counter-reset: step;
+            list-style: none;
+            padding: 0;
+        }
+
+        .steps li {
+            position: relative;
+            padding-left: 56px;
+            margin-bottom: 20px;
+            color: #a5a5b5;
+        }
+
+        .steps li:last-child {
+            margin-bottom: 0;
+        }
+
+        .steps li::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #fff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        /* 特性网格 */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .feature-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #a5a5b5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .feature-item::before {
+            content: "✓";
+            color: #22c55e;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* 提示框 */
+        .alert {
+            background: rgba(249, 115, 22, 0.08);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 20px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .alert-icon {
+            color: #f97316;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .alert-content {
+            color: #a5a5b5;
+            font-size: 14px;
+        }
+
+        .alert-content strong {
+            color: #f97316;
+        }
+
+        /* 链接 */
+        a {
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid transparent;
+        }
+
+        a:hover {
+            color: #8b5cf6;
+            border-bottom-color: #8b5cf6;
+        }
+
+        /* 代码 */
+        code {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-family: 'SF Mono', monospace;
+            font-size: 13px;
+            color: #d946ef;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 40px 24px;
+            color: #555;
+            font-size: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 24px;
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.5);
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 40px 16px;
+            }
+
+            .logo-text {
+                font-size: 32px;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
-<body class="flex justify-center w-full text-sm text-offBlack leading-6">
-    <div class="flex flex-col gap-6 w-[512px] p-6">
-        <header class="flex justify-center">
-            <img src="../img/logo.svg" alt="Cloaq" class="h-8">
+<body>
+    <div class="bg-animation"></div>
+
+    <div class="container">
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo-icon">🛡️</div>
+                <span class="logo-text">Cloaq</span>
+            </div>
+            <p>保护您的位置隐私，自由切换时区与区域设置</p>
         </header>
 
-        <main class="flex flex-col gap-6 ">
-            <div class="info-block">
-                <h2 class="info-block-title">Start Using Cloaq</h2>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon purple">🚀</div>
+                <h2 class="card-title">快速开始</h2>
+            </div>
+            <div class="card-content">
+                <ol class="steps">
+                    <li>固定扩展图标：点击浏览器工具栏右侧的拼图图标，找到 Cloaq 并点击图钉图标将其固定到工具栏。</li>
+                    <li>点击工具栏上的 Cloaq 图标打开设置面板。</li>
+                    <li>选择配置方案或自定义设置时区、语言和地理位置。</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon blue">⚡</div>
+                <h2 class="card-title">Cloaq 工作原理</h2>
+            </div>
+            <div class="card-content">
                 <p>
-                    1. Pin the extension by opening your browser’s extensions menu (found by clicking the puzzle
-                    piece icon next to the address bar) and selecting the thumbtack icon.
+                    Cloaq 使用 Chrome Debugger API 直接在浏览器层面修改数据，这使得它能够在所有 iframe 和 Web Worker 中生效。与其他依赖脚本注入的扩展不同，Cloaq 的方法更加可靠，确保数据修改无法被检测，并且在页面初始加载时就能正常工作。
                 </p>
+                <div class="features">
+                    <div class="feature-item">时区伪装</div>
+                    <div class="feature-item">地理位置模拟</div>
+                    <div class="feature-item">区域语言切换</div>
+                    <div class="feature-item">IP 地址匹配</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon orange">🌐</div>
+                <h2 class="card-title">关于 IP 地址</h2>
+            </div>
+            <div class="card-content">
+                <div class="alert">
+                    <span class="alert-icon">⚠️</span>
+                    <div class="alert-content">
+                        <strong>重要提示：</strong>Cloaq 不会更改您的 IP 地址。如需更改 IP 地址，请使用 VPN 或代理服务。
+                    </div>
+                </div>
                 <p>
-                    2. Click the extension icon on your toolbar (top right of the browser).
-                </p>
-                <p>
-                    3. Adjust the options to your desired values.
+                    Cloaq 的作用是同步您的浏览器位置数据与 VPN 的 IP 地址位置，使网站无法通过时区和地理位置检测发现您使用了 VPN。
                 </p>
             </div>
-            <div class="info-block">
-                <h2 class="info-block-title">How Cloaq Works</h2>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon green">🔧</div>
+                <h2 class="card-title">隐藏调试通知栏</h2>
+            </div>
+            <div class="card-content">
                 <p>
-                    Cloaq uses the chrome.debugger API to change data directly at the browser level, making it effective
-                    across all frames and web workers, unlike other extensions that rely on less reliable script
-                    injections. This approach ensures data modifications are undetectable and work consistently, even
-                    during the initial page load.
+                    当扩展运行时，浏览器顶部会显示一个调试通知栏。如需隐藏此通知栏，可以使用 <code>--silent-debugger-extension-api</code> 启动参数运行 Chrome。
+                </p>
+                <p>
+                    <a href="https://www.chromium.org/developers/how-tos/run-chromium-with-flags/" target="_blank">
+                        查看如何使用启动参数运行 Chrome →
+                    </a>
                 </p>
             </div>
-            <div class="info-block">
-                <h2 class="info-block-title">IP Address</h2>
-                <p>
-                    Cloaq does not change your IP address. To change your IP address you will need a VPN or proxy.
-                </p>
-            </div>
-            <div class="info-block">
-                <h2 class="info-block-title">Hide Debugging Notification Bar</h2>
-                <p>
-                    While the extension is on, a notification bar becomes visible. Hiding the bar can be done by using
-                    the
-                    --silent-debugger-extension-api flag. <a
-                        href="https://www.chromium.org/developers/how-tos/run-chromium-with-flags/" target="_blank"
-                        class="text-offBlack underline">Instructions on how to run chrome with flags.</a>
-                </p>
-            </div>
-        </main>
+        </div>
+
+        <footer class="footer">
+            © 2024 Cloaq Extension · 保护您的隐私
+        </footer>
     </div>
 </body>
 
