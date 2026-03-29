@@ -1,77 +1,442 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cloaq</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <title>Cloaq - 位置保护与时区切换</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      width: 380px;
+      min-height: 520px;
+      background: #0f0f23;
+      color: #e8e8f0;
+      overflow-x: hidden;
+    }
+
+    /* 动态背景 */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bg-animation::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(99, 102, 241, 0.08) 0%, transparent 40%);
+      animation: bgFloat 20s ease-in-out infinite;
+    }
+
+    @keyframes bgFloat {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(30px, -30px) rotate(120deg); }
+      66% { transform: translate(-20px, 20px) rotate(240deg); }
+    }
+
+    /* 头部 */
+    header {
+      position: relative;
+      z-index: 1;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff 0%, #a5a5b5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: #6366f1;
+      background: rgba(99, 102, 241, 0.15);
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      color: #a5a5b5;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .icon-btn:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* 主内容 */
+    main {
+      position: relative;
+      z-index: 1;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* 卡片样式 */
+    .card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 16px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(99, 102, 241, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .card-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .card-icon.purple { background: rgba(99, 102, 241, 0.15); }
+    .card-icon.blue { background: rgba(59, 130, 246, 0.15); }
+    .card-icon.green { background: rgba(34, 197, 94, 0.15); }
+    .card-icon.orange { background: rgba(249, 115, 22, 0.15); }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #a5a5b5;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* 输入框样式 */
+    .input-wrapper {
+      position: relative;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    select {
+      appearance: none;
+      cursor: pointer;
+      padding-right: 40px;
+    }
+
+    .select-arrow {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #6366f1;
+    }
+
+    select:focus, input:focus {
+      border-color: rgba(99, 102, 241, 0.5);
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    select option, select optgroup {
+      background: #1a1a2e;
+      color: #fff;
+    }
+
+    input::placeholder {
+      color: #666;
+    }
+
+    /* 坐标网格 */
+    .coords-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .coord-input {
+      position: relative;
+    }
+
+    .coord-label {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6366f1;
+      font-size: 12px;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    .coord-input input {
+      padding-left: 28px;
+    }
+
+    /* 状态指示器 */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      border-radius: 12px;
+      margin-bottom: 4px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+      50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    }
+
+    .status-text {
+      font-size: 13px;
+      color: #22c55e;
+      font-weight: 500;
+    }
+
+    /* 页脚 */
+    footer {
+      position: relative;
+      z-index: 1;
+      padding: 16px 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+    }
+
+    .footer-link {
+      font-size: 12px;
+      color: #666;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .footer-link:hover {
+      color: #6366f1;
+    }
+
+    .version {
+      font-size: 11px;
+      color: #444;
+      font-family: 'SF Mono', monospace;
+    }
+
+    /* 滚动条美化 */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.3);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.5);
+    }
+  </style>
 </head>
 
-<body class="w-[400px] text-sm text-offBlack">
-  <header class="flex justify-between items-center px-5 py-4 border-b border-borderLight">
-    <img src="../img/logo.svg" alt="Cloaq Logo" class="h-6">
-    <div class="flex gap-5">
-      <button id="reloadButton" title="Reload current page">
-        <img src="../img/reload.svg" alt="Reload" class="w-5">
+<body>
+  <div class="bg-animation"></div>
+
+  <header>
+    <div class="logo-section">
+      <div class="logo-icon">🛡️</div>
+      <span class="logo-text">Cloaq</span>
+      <span class="badge">PRO</span>
+    </div>
+    <div class="header-actions">
+      <button id="reloadButton" class="icon-btn" title="刷新当前页面">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
       </button>
-      <button id="infoButton" title="Info">
-        <img src="../img/info.svg" alt="Info" class="w-5">
+      <button id="infoButton" class="icon-btn" title="使用说明">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 16v-4M12 8h.01"/>
+        </svg>
       </button>
     </div>
   </header>
 
-  <main class="flex flex-col gap-5 p-5">
-    <div>
-      <h2 class="section-title">Configuration</h2>
-      <select name="configuration"
-        class="appearance-none cursor-pointer w-full py-2 px-3 border border-borderDark bg-transparent rounded h-[38px] focus:outline-none focus:border-purple bg-[url('/img/arrow.svg')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:1rem]">
-        <option value="browserDefault">Browser Default</option>
-        <option value="custom">Custom</option>
-        <option value="ipAddress">Match IP Address</option>
-        <optgroup label="Locations" id="locationsOptGroup">
-        </optgroup>
-      </select>
+  <main>
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span class="status-text">保护已启用</span>
     </div>
 
-    <div>
-      <h2 class="section-title">Time Zone</h2>
-      <input type="text" name="timeZone" class="input">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon purple">📍</div>
+        <span class="card-title">配置方案</span>
+      </div>
+      <div class="input-wrapper">
+        <select name="configuration">
+          <option value="browserDefault">浏览器默认</option>
+          <option value="custom">自定义配置</option>
+          <option value="ipAddress">匹配 IP 地址</option>
+          <optgroup label="预设位置" id="locationsOptGroup"></optgroup>
+        </select>
+        <span class="select-arrow">▼</span>
+      </div>
     </div>
 
-    <div>
-      <h2 class="section-title">Locale</h2>
-      <input type="text" name="locale" class="input">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon blue">🌍</div>
+        <span class="card-title">时区设置</span>
+      </div>
+      <input type="text" name="timeZone" placeholder="例如: Asia/Shanghai">
     </div>
 
-    <div class="flex gap-5">
-      <div>
-        <h2 class="section-title">Latitude</h2>
-        <input type="number" name="latitude" class="input">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon green">🌐</div>
+        <span class="card-title">区域语言</span>
       </div>
-      <div>
-        <h2 class="section-title">Longitude</h2>
-        <input type="number" name="longitude" class="input">
+      <input type="text" name="locale" placeholder="例如: zh-CN">
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon orange">📌</div>
+        <span class="card-title">地理位置坐标</span>
+      </div>
+      <div class="coords-grid">
+        <div class="coord-input">
+          <span class="coord-label"> lat</span>
+          <input type="number" name="latitude" placeholder="纬度">
+        </div>
+        <div class="coord-input">
+          <span class="coord-label"> lng</span>
+          <input type="number" name="longitude" placeholder="经度">
+        </div>
       </div>
     </div>
-    <!-- 
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center">
-        <input type="checkbox" id="debuggerApiMode" name="debuggerApiMode"
-          class="input-checkbox h-4 w-4 cursor-pointer">
-        <label for="debuggerApiMode" class="cursor-pointer pl-2.5">Debugger API Mode</label>
-      </div>
-      <p class="text-xs text-lightGrey">More effective & stealthy spoofing, but displays a notification bar.</p>
-    </div> -->
   </main>
 
-  <footer class="flex justify-between items-center px-5 py-4 border-t border-borderLight">
-    <a href="https://chromewebstore.google.com/detail/fcalilbnpkfikdppppppchmkdipibalb/reviews" target="_blank"
-      class="footer-link">Rate Us</a>
-    <a href="mailto:cloqextension@proton.me" target="_blank" class="footer-link">Contact</a>
-    <a href="https://github.com/www1z4rd/cloaq" target="_blank" class="footer-link">Github</a>
-    <div class="text-lightGrey" id="extensionVersion"></div>
+  <footer>
+    <div class="footer-links">
+      <a href="https://chromewebstore.google.com/detail/fcalilbnpkfikdppppppchmkdipibalb/reviews" target="_blank" class="footer-link">评分</a>
+      <a href="mailto:cloqextension@proton.me" target="_blank" class="footer-link">联系</a>
+      <a href="https://github.com/www1z4rd/cloaq" target="_blank" class="footer-link">GitHub</a>
+    </div>
+    <div class="version" id="extensionVersion"></div>
   </footer>
+
   <script src="../js/popup.js" type="module"></script>
 </body>
 
